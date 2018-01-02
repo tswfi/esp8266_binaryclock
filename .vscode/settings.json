@@ -1,0 +1,5 @@
+{
+    "terminal.integrated.env.linux": {
+        "PATH": "/home/tsw/.platformio/penv/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/tsw/.local/bin:/home/tsw/bin:/home/tsw/.local/bin:/home/tsw/bin:/home/tsw/.local/bin:/home/tsw/bin:/home/tsw/.local/bin:/home/tsw/bin"
+    }
+}
