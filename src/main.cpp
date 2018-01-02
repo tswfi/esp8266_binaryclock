@@ -6,7 +6,15 @@
 
 #include <Adafruit_NeoPixel.h>
 
+
+//
+// Connect a 4x6 matrix to D1 pin
+// the first 4 leds will be the ones of seconds and the second four the
+// tens of seconds and so on
+//
+
 #define PIN D1
+#define PIXELS 24 // 6 by 4 array
 
 const char *ssid = "Vilkas4G";
 const char *password = "verkkokauppa";
@@ -14,53 +22,95 @@ const char *password = "verkkokauppa";
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, PIN, NEO_GRB + NEO_KHZ400);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXELS, PIN, NEO_GRB + NEO_KHZ400);
+
+uint8_t temp,ones,tens;
+volatile bool tick;
+
+void inline timer0_ISR (void) {
+    tick = true;
+    // reprime the timer
+    timer0_write(ESP.getCycleCount() + 80000000L); // 80MHz == 1sec
+}
 
 void setup()
 {
+    // start serial so we can easily debug through it
     Serial.begin(115200);
 
+    // connect to wifi
     WiFi.begin(ssid, password);
-
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(".");
     }
 
+    Serial.println("Connected");
+
+    // start ntp client
     timeClient.begin();
 
+    // start the strip
     strip.begin();
-    strip.show();
+    strip.clear();
+
+    // connect timer interrupt
+    noInterrupts();
+    timer0_isr_init();
+    timer0_attachInterrupt(timer0_ISR);
+    timer0_write(ESP.getCycleCount() + 80000000L); // 80MHZ / 1sec
+    interrupts();
+
+    // prime our first tick
+    tick = true;
+}
+
+void show(uint8_t offset, int t) {
+    // offset 0 for seconds
+    // offset 8 for minutes
+    // offset 12 for hours
+    tens = t / 10;
+    ones = t % 10;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if(bitRead(ones, i)) {
+            strip.setPixelColor(i+offset, strip.Color(0, 0, 255));
+        }
+    }
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if(bitRead(tens, i)) {
+            strip.setPixelColor(i+offset+4, strip.Color(0, 0, 255));
+        }
+    }
+
 }
 
 void loop()
 {
+    // everytime tick is on update everything
+    // update on every tick
+    if(tick) {
+        timeClient.update();
+        Serial.println(timeClient.getFormattedTime());
 
-    timeClient.update();
-
-    Serial.println(timeClient.getFormattedTime());
-
-    delay(1000);
-
-/*     for (uint16_t i = 1; i < strip.numPixels() - 1; i++)
-    {
-        strip.setPixelColor(i - 1, strip.Color(0, 32, 0));
-        strip.setPixelColor(i, strip.Color(0, 64, 0));
-        strip.setPixelColor(i + 1, strip.Color(0, 255, 0));
-        strip.show();
-        delay(50);
         strip.clear();
-    }
 
-    for (uint16_t i = strip.numPixels() - 1; i > 1; i--)
-    {
-        strip.setPixelColor(i - 1, strip.Color(0, 255, 0));
-        strip.setPixelColor(i, strip.Color(0, 64, 0));
-        strip.setPixelColor(i + 1, strip.Color(0, 32, 0));
+        // update the strip
+        temp = timeClient.getSeconds();
+        show(0, temp);
+
+        temp = timeClient.getMinutes();
+        show(8, temp);
+
+        temp = timeClient.getHours();
+        show(16, temp);
+
+        // push to the strip
         strip.show();
-        delay(50);
-        strip.clear();
+
+        // wait for next tick
+        tick = false;
     }
- */
 }
