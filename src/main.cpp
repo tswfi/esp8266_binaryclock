@@ -26,15 +26,14 @@
 #define PIN D1
 #define PIXELS 24 // 6 by 4 array
 
+// update to match your network
 const char *ssid = "Vilkas4G";
 const char *password = "verkkokauppa";
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
-
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXELS, PIN, NEO_GRB + NEO_KHZ400);
 
-uint8_t temp,ones,tens;
 volatile bool tick;
 
 void inline timer0_ISR (void) {
@@ -54,14 +53,14 @@ void setup()
 
     // connect to wifi
     WiFi.begin(ssid, password);
-    temp = 0;
+    uint8_t i=0;
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
-        strip.setPixelColor(temp, strip.Color(32, 32, 32));
+        strip.setPixelColor(i, strip.Color(32, 32, 32));
         strip.show();
         Serial.print(".");
-        temp++;
+        i++;
     }
 
     Serial.println("Connected");
@@ -84,8 +83,8 @@ void show(uint8_t offset, int t) {
     // offset 0 for seconds
     // offset 8 for minutes
     // offset 12 for hours
-    tens = t / 10;
-    ones = t % 10;
+    uint8_t tens = t / 10;
+    uint8_t ones = t % 10;
 
     // ones go up
     for (uint8_t i = 0; i < 4; i++) {
@@ -108,20 +107,19 @@ void loop()
     // everytime tick is on update everything
     // update on every tick
     if(tick) {
+        // update timeclient
         timeClient.update();
+
+        // debug output to serial
         Serial.println(timeClient.getFormattedTime());
 
+        // clear the strip
         strip.clear();
 
         // update the strip
-        temp = timeClient.getSeconds();
-        show(0, temp);
-
-        temp = timeClient.getMinutes();
-        show(8, temp);
-
-        temp = timeClient.getHours();
-        show(16, temp);
+        show(0, timeClient.getSeconds());
+        show(8, timeClient.getMinutes());
+        show(16, timeClient.getHours());
 
         // push to the strip
         strip.show();

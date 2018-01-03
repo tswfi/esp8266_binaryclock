@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <unity.h>
 
+// this is just a test to see how the test cases could be written
+// not really doing anything intelligent
+
 #ifdef UNIT_TEST
 
 void test_led_builtin_pin_number(void) {
