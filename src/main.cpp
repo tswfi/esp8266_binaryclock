@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#ifndef UNIT_TEST
+
 #include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
@@ -38,22 +40,26 @@ void setup()
     // start serial so we can easily debug through it
     Serial.begin(115200);
 
+    // start the strip
+    strip.begin();
+    strip.clear();
+
     // connect to wifi
     WiFi.begin(ssid, password);
+    temp = 0;
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
+        strip.setPixelColor(temp, strip.Color(32, 32, 32));
+        strip.show();
         Serial.print(".");
+        temp++;
     }
 
     Serial.println("Connected");
 
     // start ntp client
     timeClient.begin();
-
-    // start the strip
-    strip.begin();
-    strip.clear();
 
     // connect timer interrupt
     noInterrupts();
@@ -114,3 +120,5 @@ void loop()
         tick = false;
     }
 }
+
+#endif
