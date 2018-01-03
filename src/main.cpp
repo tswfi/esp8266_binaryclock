@@ -14,6 +14,14 @@
 // the first 4 leds will be the ones of seconds and the second four the
 // tens of seconds and so on
 //
+//                 L5 - L4
+//                 |    |
+//                 L6   L3
+//            etc  |    |
+//            L1   L7   L2
+//            |    |    |
+//            L9 - L8   L1
+//
 
 #define PIN D1
 #define PIXELS 24 // 6 by 4 array
@@ -22,7 +30,7 @@ const char *ssid = "Vilkas4G";
 const char *password = "verkkokauppa";
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600, 60000);
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXELS, PIN, NEO_GRB + NEO_KHZ400);
 
@@ -79,15 +87,17 @@ void show(uint8_t offset, int t) {
     tens = t / 10;
     ones = t % 10;
 
+    // ones go up
     for (uint8_t i = 0; i < 4; i++) {
         if(bitRead(ones, i)) {
-            strip.setPixelColor(i+offset, strip.Color(0, 0, 255));
+            strip.setPixelColor(offset+i, strip.Color(0, 0, 255));
         }
     }
 
+    // tens go down
     for (uint8_t i = 0; i < 4; i++) {
         if(bitRead(tens, i)) {
-            strip.setPixelColor(i+offset+4, strip.Color(0, 0, 255));
+            strip.setPixelColor(offset+7-i, strip.Color(0, 0, 255));
         }
     }
 
