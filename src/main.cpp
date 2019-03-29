@@ -8,6 +8,10 @@
 
 #include <Adafruit_NeoPixel.h>
 
+#include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
+#include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
+#include <WiFiManager.h>
+
 
 //
 // Connect a 4x6 matrix to D1 pin
@@ -26,10 +30,7 @@
 #define PIN D1
 #define PIXELS 24 // 6 by 4 array
 
-// update to match your network
-const char *ssid = "Vilkas4G";
-const char *password = "verkkokauppa";
-
+WiFiManager wifiManager;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", 3600*2, 60000);
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXELS, PIN, NEO_GRB + NEO_KHZ400);
@@ -47,23 +48,14 @@ void setup()
     // start serial so we can easily debug through it
     Serial.begin(115200);
 
-    // start the strip
+    // start and clear the strip
     strip.begin();
     strip.clear();
+    strip.show();
 
-    // connect to wifi
-    WiFi.begin(ssid, password);
-    uint8_t i=0;
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        strip.setPixelColor(i, strip.Color(32, 32, 32));
-        strip.show();
-        Serial.print(".");
-        i++;
-    }
-
-    Serial.println("Connected");
+    // start wifi manager, it will either make connection
+    // or open ap for saving the network config
+    wifiManager.autoConnect();
 
     // start ntp client
     timeClient.begin();
