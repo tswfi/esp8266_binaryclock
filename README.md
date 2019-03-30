@@ -17,3 +17,7 @@ Platformio project (http://docs.platformio.org/en/latest/ide/vscode.html#install
 # Upload
 
     pio run --target upload
+
+# laser cut case
+
+svg images can be found from "case" folder
