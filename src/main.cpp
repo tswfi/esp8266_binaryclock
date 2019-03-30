@@ -81,14 +81,14 @@ void show(uint8_t offset, int t) {
     // ones go up
     for (uint8_t i = 0; i < 4; i++) {
         if(bitRead(ones, i)) {
-            strip.setPixelColor(offset+i, strip.Color(0, 0, 255));
+            strip.setPixelColor(offset+7-i, strip.Color(0, 0, 255));
         }
     }
 
     // tens go down
     for (uint8_t i = 0; i < 4; i++) {
         if(bitRead(tens, i)) {
-            strip.setPixelColor(offset+7-i, strip.Color(0, 0, 255));
+            strip.setPixelColor(offset+i, strip.Color(0, 0, 255));
         }
     }
 
@@ -96,7 +96,6 @@ void show(uint8_t offset, int t) {
 
 void loop()
 {
-    // everytime tick is on update everything
     // update on every tick
     if(tick) {
         // update timeclient
@@ -109,9 +108,9 @@ void loop()
         strip.clear();
 
         // update the strip
-        show(0, timeClient.getSeconds());
+        show(16, timeClient.getSeconds());
         show(8, timeClient.getMinutes());
-        show(16, timeClient.getHours());
+        show(0, timeClient.getHours());
 
         // push to the strip
         strip.show();
